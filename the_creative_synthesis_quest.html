@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Creative Synthesis Quest</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Retro Arcade & Modern Readability -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .font-arcade {
+      font-family: 'Press Start 2P', monospace;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    /* CRT Scanline & Glow Effects */
+    .crt::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 20;
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .neon-border {
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 overflow-x-hidden">
+
+  <!-- Main Game Container -->
+  <div class="relative w-full max-w-4xl bg-slate-900 border-2 border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col crt">
+    
+    <!-- Top Retro Banner / Nav -->
+    <header class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 z-10">
+      <div class="flex items-center space-x-3">
+        <span class="inline-block w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+        <h1 class="font-arcade text-xs sm:text-sm text-cyan-400 tracking-wider">CREATIVE SYNTHESIS QUEST</h1>
+      </div>
+      <div class="flex items-center space-x-2 text-xs">
+        <span class="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md font-medium border border-slate-700">Harvey (2014) AMR Model</span>
+        <button id="soundToggleBtn" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-300 px-3 py-1 rounded-md border border-cyan-700 text-xs font-semibold transition">
+          🔊 Sound: ON
+        </button>
+      </div>
+    </header>
+
+    <!-- Top In-Game HUD -->
+    <div id="gameHud" class="bg-slate-950/90 px-4 py-2 flex flex-wrap items-center justify-between text-xs border-b border-slate-800 gap-2 z-10">
+      <div class="flex items-center space-x-4">
+        <div>
+          <span class="text-slate-500 uppercase tracking-wider font-semibold">Stage:</span>
+          <span id="hudLevel" class="font-arcade text-amber-400 ml-1">1/6</span>
+        </div>
+        <div>
+          <span class="text-slate-500 uppercase tracking-wider font-semibold">Member Persona:</span>
+          <span id="hudMember" class="text-emerald-300 font-bold ml-1">Analytical Strategist</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4 font-arcade">
+        <div>
+          <span class="text-slate-500">COLLECTED:</span>
+          <span id="hudScore" class="text-cyan-400 ml-1">0/4</span>
+        </div>
+        <div>
+          <span class="text-slate-500">LIVES:</span>
+          <span id="hudLives" class="text-rose-400 ml-1">❤❤❤</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Canvas Arena -->
+    <div class="relative w-full aspect-[16/9] sm:h-[430px] bg-slate-950 flex items-center justify-center overflow-hidden">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Overlay: Start Screen -->
+      <div id="startScreen" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center z-30">
+        <div class="inline-block px-3 py-1 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 text-xs font-semibold mb-3">
+          Asynchronous Creativity Training Module (5–7 min)
+        </div>
+        <h2 class="font-arcade text-lg sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 mb-4 tracking-wide leading-relaxed">
+          THE CREATIVE SYNTHESIS QUEST
+        </h2>
+        <p class="max-w-xl text-slate-300 text-xs sm:text-sm mb-6 leading-relaxed">
+          Groundbreaking teams like <strong>Pixar</strong> do not rely purely on random evolutionary brainstorming. Instead, they harness <em>Creative Synthesis</em>—integrating diverse member cognitive styles into a coevolving breakthrough exemplar.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-left text-xs mb-6 max-w-lg w-full text-slate-300">
+          <div class="bg-slate-900/80 p-2 rounded border border-slate-800">1. Analytical Strategist</div>
+          <div class="bg-slate-900/80 p-2 rounded border border-slate-800">2. Wild Ideator</div>
+          <div class="bg-slate-900/80 p-2 rounded border border-slate-800">3. Pragmatic Builder</div>
+          <div class="bg-slate-900/80 p-2 rounded border border-slate-800">4. Empathetic Harmonizer</div>
+          <div class="bg-slate-900/80 p-2 rounded border border-slate-800">5. Provocative Disruptor</div>
+          <div class="bg-cyan-950/80 p-2 rounded border border-cyan-700 text-cyan-200 font-bold">6. Breakthrough Synthesis</div>
+        </div>
+        <button id="startQuestBtn" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-arcade text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/25 transition transform active:scale-95">
+          START QUEST [TAP / SPACE]
+        </button>
+      </div>
+
+      <!-- Overlay: Level Intro Prompt Modal -->
+      <div id="levelIntroModal" class="hidden absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center z-30">
+        <span id="introStageBadge" class="font-arcade text-[10px] sm:text-xs text-amber-400 mb-2 tracking-widest">STAGE 1 OF 6</span>
+        <h3 id="introTitle" class="font-arcade text-sm sm:text-lg text-cyan-300 mb-3">MEMBER 1: THE ANALYTICAL STRATEGIST</h3>
+        <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl max-w-lg mb-4 text-xs sm:text-sm text-slate-300 text-left leading-relaxed">
+          <p id="introConcept" class="text-cyan-200 font-semibold mb-1">Theoretical Focus: Cognitive Rigor & Systematic Problem Framing</p>
+          <p id="introDescription" class="text-slate-300">Navigates structured data constraints. Harvey (2014) notes that extraordinary synthesis begins with a deep, rigorous grasp of existing domain frameworks.</p>
+          <div id="introMechanic" class="mt-3 pt-2 border-t border-slate-800 text-amber-300 font-medium text-xs">
+            🎮 Control: Tap / Spacebar to Single-Jump precision data grids. Collect 4 Data Insights.
+          </div>
+        </div>
+        <button id="introStartBtn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-arcade text-xs px-6 py-3 rounded-xl shadow-lg shadow-emerald-500/30 transition transform active:scale-95">
+          ENTER STAGE [TAP / SPACE]
+        </button>
+      </div>
+
+      <!-- Overlay: Stage Completion Modal -->
+      <div id="levelCompleteModal" class="hidden absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center z-30">
+        <div class="text-3xl mb-2">✨</div>
+        <h3 class="font-arcade text-sm sm:text-lg text-emerald-400 mb-2">PERSPECTIVE INTEGRATED!</h3>
+        <p id="completePersona" class="font-bold text-slate-100 text-sm mb-3">Persona Contribution Archived</p>
+        <div class="bg-slate-900 border border-emerald-900/60 p-4 rounded-xl max-w-lg mb-5 text-left">
+          <span class="text-[10px] font-arcade text-emerald-400 block mb-1">HARVEY (2014) RESEARCH TAKEAWAY</span>
+          <p id="completeTakeaway" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+            Takeaway description goes here.
+          </p>
+        </div>
+        <button id="nextLevelBtn" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-arcade text-xs px-6 py-3 rounded-xl shadow-lg transition transform active:scale-95">
+          PROCEED TO NEXT STAGE ➔
+        </button>
+      </div>
+
+      <!-- Overlay: Game Over Screen -->
+      <div id="gameOverModal" class="hidden absolute inset-0 bg-rose-950/90 flex flex-col items-center justify-center p-6 text-center z-30">
+        <div class="text-3xl mb-2">⚠️</div>
+        <h3 class="font-arcade text-sm sm:text-lg text-rose-300 mb-2">COGNITIVE OVERLOAD!</h3>
+        <p class="text-xs sm:text-sm text-slate-200 max-w-md mb-5 leading-relaxed">
+          The dialectical friction collapsed without synthesis. In creative teams, constructive conflict needs resilient psychological safety!
+        </p>
+        <button id="retryStageBtn" class="bg-rose-500 hover:bg-rose-400 text-white font-arcade text-xs px-6 py-3 rounded-xl shadow-lg transition transform active:scale-95">
+          TRY STAGE AGAIN ↻
+        </button>
+      </div>
+
+      <!-- Overlay: Final Victory / Synthesis Matrix -->
+      <div id="victoryModal" class="hidden absolute inset-0 bg-slate-950/98 flex flex-col items-center justify-center p-4 sm:p-6 text-center z-30 overflow-y-auto">
+        <div class="text-3xl mb-1">🏆</div>
+        <h2 class="font-arcade text-sm sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-teal-300 to-cyan-400 mb-1">
+          EXTRAORDINARY CREATIVE SYNTHESIS ACHIEVED!
+        </h2>
+        <p class="text-slate-300 text-xs mb-4">
+          All 5 distinct perspectives have synthesized into a radical breakthrough exemplar!
+        </p>
+
+        <!-- Synthesis Matrix Table -->
+        <div class="w-full max-w-xl bg-slate-900 border border-cyan-800/80 rounded-xl p-3 text-left text-xs mb-4 space-y-2">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 font-arcade text-[10px] text-cyan-400">
+            <span>MEMBER DIALECTIC</span>
+            <span>HARVEY PROCESS FACILITATOR</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300 text-[11px]">
+            <span>1. Analytical Rigor</span>
+            <span class="text-slate-400">Questioning Dominant Paradigms</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300 text-[11px]">
+            <span>2. Wild Ideation</span>
+            <span class="text-slate-400">Divergent Variance Generation</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300 text-[11px]">
+            <span>3. Pragmatic Building</span>
+            <span class="text-emerald-300 font-semibold">Enacting Ideas / Prototyping</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300 text-[11px]">
+            <span>4. Empathetic Harmony</span>
+            <span class="text-emerald-300 font-semibold">Building on Similarities</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-300 text-[11px]">
+            <span>5. Provocative Disruption</span>
+            <span class="text-emerald-300 font-semibold">Focusing Collective Attention</span>
+          </div>
+          <div class="mt-2 pt-2 border-t border-slate-800 text-cyan-300 font-medium text-[11px]">
+            🌟 <strong>Final Coevolved Exemplar:</strong> Instead of diluting ideas into bland compromise, the team generated an entirely new paradigm beyond any single individual's vision.
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 justify-center">
+          <button id="playAgainBtn" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-arcade text-xs px-5 py-2.5 rounded-lg shadow transition">
+            REPLAY QUEST ↻
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Controls & Academic Quick Select -->
+    <footer class="bg-slate-950 px-4 py-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs z-10">
+      <div class="flex items-center space-x-2 text-slate-400">
+        <span class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono border border-slate-700">SPACE / TAP</span>
+        <span>to Jump / Float / Stomp / Boost</span>
+      </div>
+      <!-- Stage Jump / Accessibility select for 5-10 min coursework review -->
+      <div class="flex items-center space-x-1">
+        <span class="text-slate-500 text-[11px] mr-1">Skip to Level:</span>
+        <button onclick="jumpToStage(0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono">1</button>
+        <button onclick="jumpToStage(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono">2</button>
+        <button onclick="jumpToStage(2)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono">3</button>
+        <button onclick="jumpToStage(3)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono">4</button>
+        <button onclick="jumpToStage(4)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono">5</button>
+        <button onclick="jumpToStage(5)" class="px-2 py-1 bg-cyan-900 hover:bg-cyan-800 text-cyan-200 rounded text-[11px] font-mono">6 (Final)</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Interactive Script Logic -->
+  <script>
+    // --- AUDIO SYSTEM (Web Audio API - No external assets) ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playJump() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(420, this.ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+      }
+      playCollect() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc1.type = 'square';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, now); // C5
+        osc1.frequency.setValueAtTime(659.25, now + 0.08); // E5
+        osc1.frequency.setValueAtTime(783.99, now + 0.16); // G5
+        osc2.frequency.setValueAtTime(1046.50, now + 0.16); // C6
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc1.start(now);
+        osc2.start(now + 0.16);
+        osc1.stop(now + 0.28);
+        osc2.stop(now + 0.28);
+      }
+      playHit() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(40, now + 0.2);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+      playLevelWin() {
+        if (!this.enabled) return;
+        this.init();
+        const notes = [440, 554.37, 659.25, 880];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const time = this.ctx.currentTime + (i * 0.1);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, time);
+          gain.gain.setValueAtTime(0.18, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(time);
+          osc.stop(time + 0.25);
+        });
+      }
+    }
+    const sound = new SoundEngine();
+
+    // Toggle sound
+    document.getElementById('soundToggleBtn').addEventListener('click', () => {
+      sound.enabled = !sound.enabled;
+      document.getElementById('soundToggleBtn').innerText = sound.enabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    });
+
+    // --- LEVEL DEFINITIONS BASED ON HARVEY (2014) ---
+    const LEVEL_CONFIGS = [
+      {
+        levelNum: 1,
+        title: "STAGE 1: THE ANALYTICAL STRATEGIST",
+        member: "The Analytical Strategist",
+        concept: "Cognitive Problem Framing & Baseline Standards",
+        itemLabel: "Data Insights",
+        targetCollect: 4,
+        description: "Represents rigorous analysis and domain mastery. Harvey emphasizes that creative synthesis does not reject domain assumptions outright; it first grasps the dominant paradigm so the team knows what to build upon.",
+        mechanicNotice: "🎮 Precision Jump (Dino style): Tap or Spacebar to jump over rigid institutional data blocks. Collect 4 Data Insights.",
+        takeaway: "Harvey (2014) Takeaway: Creative synthesis requires deep baseline knowledge. Group members must thoroughly understand existing frameworks before they can meaningfully redefine them.",
+        palette: { bg: '#030712', obstacle: '#38bdf8', collect: '#38bdf8', player: '#38bdf8', ground: '#1e293b' },
+        avatarType: 'square'
+      },
+      {
+        levelNum: 2,
+        title: "STAGE 2: THE WILD IDEATOR",
+        member: "The Wild Ideator",
+        concept: "Divergent Thinking & Idea Variance Generation",
+        itemLabel: "Sparks of Genius",
+        targetCollect: 4,
+        description: "Brings unconstrained brainstorms and wild conceptual variance. Traditional evolutionary models stop at variance, assuming one lucky idea breaks through.",
+        mechanicNotice: "🎮 Flappy Glide: Tap / Space repeatedly to flap upward through turbulent idea clouds. Collect 4 Sparks.",
+        takeaway: "Harvey (2014) Takeaway: Divergence generates raw mental variation, but divergence alone is insufficient for sustained breakthroughs without collective integration.",
+        palette: { bg: '#0f172a', obstacle: '#ec4899', collect: '#f43f5e', player: '#f472b6', ground: '#1e1b4b' },
+        avatarType: 'spark'
+      },
+      {
+        levelNum: 3,
+        title: "STAGE 3: THE PRAGMATIC BUILDER",
+        member: "The Pragmatic Builder",
+        concept: "Enacting Ideas & Rapid Physical Prototyping",
+        itemLabel: "Tangible Prototypes",
+        targetCollect: 4,
+        description: "Translates abstract musings into tangible models. Harvey highlights 'Enacting Ideas' (storyboards, rough mockups) as an early bridge that makes implicit assumptions visible to peers.",
+        mechanicNotice: "🎮 Stomp & Smash: Tap / Spacebar to alternate stomping heavy gravity through structural blocks. Collect 4 Prototypes.",
+        takeaway: "Harvey (2014) Takeaway: Enacting ideas physically (prototyping, storyboarding) creates boundary objects that anchor discussion and reveal hidden differences early.",
+        palette: { bg: '#141410', obstacle: '#f59e0b', collect: '#fbbf24', player: '#f59e0b', ground: '#292524' },
+        avatarType: 'cube'
+      },
+      {
+        levelNum: 4,
+        title: "STAGE 4: THE EMPATHETIC HARMONIZER",
+        member: "The Empathetic Harmonizer",
+        concept: "Building on Similarities Across Perspectives",
+        itemLabel: "Common Ground Bridges",
+        targetCollect: 4,
+        description: "Searches for analogical bridges between opposing viewpoints. Harvey demonstrates that identifying structural similarities prevents toxic relationship conflict.",
+        mechanicNotice: "🎮 Harmonic Sine Float: Tap / Spacebar to gently bob upward through social friction currents. Collect 4 Common Grounds.",
+        takeaway: "Harvey (2014) Takeaway: Building on analogies and commonalities enables group members to reframe their own expertise through others' perspectives, sparking synthesis.",
+        palette: { bg: '#06201b', obstacle: '#10b981', collect: '#34d399', player: '#10b981', ground: '#064e3b' },
+        avatarType: 'wave'
+      },
+      {
+        levelNum: 5,
+        title: "STAGE 5: THE PROVOCATIVE DISRUPTOR",
+        member: "The Provocative Disruptor",
+        concept: "Collective Attention & Challenging Assumptions",
+        itemLabel: "Paradox Keys",
+        targetCollect: 4,
+        description: "Introduces productive dialectic conflict by questioning dogma. Dialectical tension creates the energy necessary for radical change.",
+        mechanicNotice: "🎮 Fast Dash / Hazard Dodge: Quick reflexive tapping to evade institutional orthodoxies. Collect 4 Paradox Keys.",
+        takeaway: "Harvey (2014) Takeaway: Dialectic conflict is ongoing. Focusing collective attention on paradoxes prevents early consensus and drives extraordinary breakthroughs.",
+        palette: { bg: '#1a051d', obstacle: '#a855f7', collect: '#c084fc', player: '#d946ef', ground: '#3b0764' },
+        avatarType: 'diamond'
+      },
+      {
+        levelNum: 6,
+        title: "FINAL STAGE: CREATIVE SYNTHESIS",
+        member: "The Breakthrough Exemplar (All 5 Combined)",
+        concept: "Dialectical Integration & Breakthrough Exemplar",
+        itemLabel: "Synthesis Cores",
+        targetCollect: 5,
+        description: "The team's diverse cognitive perspectives unify into a coevolving synthesis vessel! In this final stage, thesis meets antithesis to reach the radical breakthrough product.",
+        mechanicNotice: "🎮 Synthesis Flight: Tap / Space to steer the multi-faceted vessel through the dialectic vortex. Collect 5 Synthesis Cores!",
+        takeaway: "Extraordinary Breakthrough! Harvey shows that repeated breakthroughs occur when a shared synthesis acts as an evolutionary map guiding breakthrough exemplars.",
+        palette: { bg: '#031326', obstacle: '#e2e8f0', collect: '#38bdf8', player: '#38bdf8', ground: '#0f172a' },
+        avatarType: 'synthesizer'
+      }
+    ];
+
+    // --- GAME ENGINE STATE ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentStageIndex = 0;
+    let gameState = 'START'; // 'START', 'INTRO', 'PLAYING', 'STAGE_OVER', 'GAME_OVER', 'VICTORY'
+    let score = 0;
+    let lives = 3;
+    let animFrameId = null;
+
+    // Player object
+    const player = {
+      x: 80,
+      y: 200,
+      w: 26,
+      h: 26,
+      vy: 0,
+      gravity: 0.55,
+      jumpForce: -9.5,
+      grounded: false,
+      rotation: 0
+    };
+
+    // World entities
+    let obstacles = [];
+    let collectibles = [];
+    let particles = [];
+    let stars = [];
+    let spawnTimer = 0;
+    let groundY = 0;
+    let gameSpeed = 3.8;
+
+    // Resize Canvas Dynamically
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      groundY = canvas.height - 40;
+      initBackgroundStars();
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function initBackgroundStars() {
+      stars = [];
+      for (let i = 0; i < 40; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * groundY,
+          size: Math.random() * 2 + 1,
+          speed: Math.random() * 0.8 + 0.2
+        });
+      }
+    }
+
+    // --- UI HELPERS ---
+    function updateHUD() {
+      const config = LEVEL_CONFIGS[currentStageIndex];
+      document.getElementById('hudLevel').innerText = `${config.levelNum}/6`;
+      document.getElementById('hudMember').innerText = config.member;
+      document.getElementById('hudScore').innerText = `${score}/${config.targetCollect}`;
+      document.getElementById('hudLives').innerText = "❤".repeat(Math.max(0, lives));
+    }
+
+    function showModal(modalId) {
+      ['startScreen', 'levelIntroModal', 'levelCompleteModal', 'gameOverModal', 'victoryModal'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      if (modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+      }
+    }
+
+    // --- GAME LIFECYCLE ---
+    function prepareStage(index) {
+      currentStageIndex = index;
+      const config = LEVEL_CONFIGS[currentStageIndex];
+      score = 0;
+      lives = 3;
+      obstacles = [];
+      collectibles = [];
+      particles = [];
+      spawnTimer = 0;
+      
+      // Stage specific physics tuning
+      if (config.levelNum === 1) { // Precision Jump
+        player.gravity = 0.65;
+        player.jumpForce = -10.5;
+        gameSpeed = 3.6;
+      } else if (config.levelNum === 2) { // Flappy glide
+        player.gravity = 0.38;
+        player.jumpForce = -7.0;
+        gameSpeed = 3.8;
+      } else if (config.levelNum === 3) { // Heavy Stomp
+        player.gravity = 0.8;
+        player.jumpForce = -11.0;
+        gameSpeed = 4.0;
+      } else if (config.levelNum === 4) { // Sine Float
+        player.gravity = 0.35;
+        player.jumpForce = -6.5;
+        gameSpeed = 3.6;
+      } else if (config.levelNum === 5) { // Rapid Dash
+        player.gravity = 0.6;
+        player.jumpForce = -9.8;
+        gameSpeed = 4.4;
+      } else { // Synthesis Final
+        player.gravity = 0.42;
+        player.jumpForce = -8.2;
+        gameSpeed = 4.2;
+      }
+
+      player.x = 80;
+      player.y = groundY - player.h - 10;
+      player.vy = 0;
+
+      // Populate intro modal info
+      document.getElementById('introStageBadge').innerText = `STAGE ${config.levelNum} OF 6`;
+      document.getElementById('introTitle').innerText = config.title;
+      document.getElementById('introConcept').innerText = `Theoretical Focus: ${config.concept}`;
+      document.getElementById('introDescription').innerText = config.description;
+      document.getElementById('introMechanic').innerText = config.mechanicNotice;
+
+      updateHUD();
+      gameState = 'INTRO';
+      showModal('levelIntroModal');
+    }
+
+    function startStageGameplay() {
+      showModal(null);
+      gameState = 'PLAYING';
+      sound.init();
+    }
+
+    // Input Actions (Jump / Flap / Float)
+    function handleActionInput() {
+      if (gameState === 'START') {
+        prepareStage(0);
+        return;
+      }
+      if (gameState === 'INTRO') {
+        startStageGameplay();
+        return;
+      }
+      if (gameState === 'STAGE_OVER') {
+        advanceToNextStage();
+        return;
+      }
+      if (gameState === 'GAME_OVER') {
+        prepareStage(currentStageIndex);
+        return;
+      }
+      if (gameState === 'VICTORY') {
+        prepareStage(0);
+        return;
+      }
+
+      if (gameState === 'PLAYING') {
+        const config = LEVEL_CONFIGS[currentStageIndex];
+        // Stage 1 (Dino jump requires ground contact)
+        if (config.levelNum === 1) {
+          if (player.grounded) {
+            player.vy = player.jumpForce;
+            player.grounded = false;
+            createPuff(player.x, player.y + player.h, '#38bdf8');
+            sound.playJump();
+          }
+        } else {
+          // Multi-flap or flight stages (Stages 2, 3, 4, 5, 6)
+          player.vy = player.jumpForce;
+          createPuff(player.x, player.y + player.h / 2, config.palette.player);
+          sound.playJump();
+        }
+      }
+    }
+
+    // Global Key Listener & Touch Listener
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ' || e.code === 'ArrowUp' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleActionInput();
+      }
+    });
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handleActionInput();
+    });
+
+    // Particle Puff Creator
+    function createPuff(x, y, color) {
+      for (let i = 0; i < 6; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 3 - 1,
+          vy: (Math.random() - 0.5) * 3,
+          life: 1.0,
+          decay: 0.05 + Math.random() * 0.05,
+          color: color,
+          size: Math.random() * 4 + 2
+        });
+      }
+    }
+
+    // Spawn Obstacles & Learning Collectibles
+    function spawnSpawns() {
+      const config = LEVEL_CONFIGS[currentStageIndex];
+      spawnTimer++;
+
+      const spawnInterval = config.levelNum === 1 ? 95 : 85;
+
+      if (spawnTimer % spawnInterval === 0) {
+        // Collectible positioning
+        const collectY = Math.max(40, Math.min(groundY - 50, 60 + Math.random() * (groundY - 140)));
+        collectibles.push({
+          x: canvas.width + 30,
+          y: collectY,
+          w: 22,
+          h: 22,
+          collected: false,
+          color: config.palette.collect,
+          pulse: 0
+        });
+
+        // Obstacle generation varied by level
+        if (config.levelNum === 1) {
+          // Data Grid Box obstacle on the floor
+          obstacles.push({
+            type: 'box',
+            x: canvas.width + 100,
+            y: groundY - 36,
+            w: 26,
+            h: 36,
+            color: config.palette.obstacle
+          });
+        } else if (config.levelNum === 2) {
+          // Idea clouds (Flappy pipe style from ceiling and floor)
+          const gap = 120;
+          const topH = 40 + Math.random() * (groundY - gap - 80);
+          obstacles.push({
+            type: 'pipeTop',
+            x: canvas.width + 100,
+            y: 0,
+            w: 38,
+            h: topH,
+            color: config.palette.obstacle
+          });
+          obstacles.push({
+            type: 'pipeBottom',
+            x: canvas.width + 100,
+            y: topH + gap,
+            w: 38,
+            h: groundY - (topH + gap),
+            color: config.palette.obstacle
+          });
+        } else if (config.levelNum === 3) {
+          // Floating prototype blocks
+          obstacles.push({
+            type: 'floatingBeam',
+            x: canvas.width + 100,
+            y: 80 + Math.random() * (groundY - 160),
+            w: 32,
+            h: 50,
+            color: config.palette.obstacle
+          });
+        } else if (config.levelNum === 4) {
+          // Oscillating harmonic friction wave barriers
+          obstacles.push({
+            type: 'sineNode',
+            x: canvas.width + 100,
+            y: 70 + Math.random() * (groundY - 140),
+            baseY: 70 + Math.random() * (groundY - 140),
+            w: 28,
+            h: 28,
+            theta: 0,
+            color: config.palette.obstacle
+          });
+        } else if (config.levelNum === 5) {
+          // Sharp fast disruptor paradox pylons
+          obstacles.push({
+            type: 'box',
+            x: canvas.width + 80,
+            y: groundY - 48,
+            w: 20,
+            h: 48,
+            color: config.palette.obstacle
+          });
+          obstacles.push({
+            type: 'box',
+            x: canvas.width + 80,
+            y: 0,
+            w: 20,
+            h: 48,
+            color: config.palette.obstacle
+          });
+        } else {
+          // Level 6: Dual dialectic flux fields
+          const midGap = 135;
+          const topY = 30 + Math.random() * (groundY - midGap - 60);
+          obstacles.push({
+            type: 'pipeTop',
+            x: canvas.width + 90,
+            y: 0,
+            w: 30,
+            h: topY,
+            color: '#64748b'
+          });
+          obstacles.push({
+            type: 'pipeBottom',
+            x: canvas.width + 90,
+            y: topY + midGap,
+            w: 30,
+            h: groundY - (topY + midGap),
+            color: '#64748b'
+          });
+        }
+      }
+    }
+
+    // AABB Collision Detection
+    function checkCollision(r1, r2) {
+      return (
+        r1.x < r2.x + r2.w &&
+        r1.x + r1.w > r2.x &&
+        r1.y < r2.y + r2.h &&
+        r1.y + r1.h > r2.y
+      );
+    }
+
+    // Complete Level handler
+    function triggerStageCompletion() {
+      const config = LEVEL_CONFIGS[currentStageIndex];
+      sound.playLevelWin();
+      gameState = 'STAGE_OVER';
+
+      if (currentStageIndex === LEVEL_CONFIGS.length - 1) {
+        // Final Level Completed -> Victory Screen
+        showModal('victoryModal');
+      } else {
+        document.getElementById('completePersona').innerText = `Persona Unlocked: ${config.member}`;
+        document.getElementById('completeTakeaway').innerText = config.takeaway;
+        showModal('levelCompleteModal');
+      }
+    }
+
+    function advanceToNextStage() {
+      if (currentStageIndex < LEVEL_CONFIGS.length - 1) {
+        prepareStage(currentStageIndex + 1);
+      } else {
+        showModal('victoryModal');
+      }
+    }
+
+    // Debug Jump to stage (for teacher/student review)
+    window.jumpToStage = function(idx) {
+      prepareStage(idx);
+    };
+
+    // --- MAIN GAME LOOP ---
+    function updateGame() {
+      if (gameState !== 'PLAYING') return;
+
+      const config = LEVEL_CONFIGS[currentStageIndex];
+
+      // Physics
+      player.vy += player.gravity;
+      player.y += player.vy;
+
+      // Floor boundary
+      if (player.y + player.h >= groundY) {
+        player.y = groundY - player.h;
+        player.vy = 0;
+        player.grounded = true;
+      } else {
+        player.grounded = false;
+      }
+
+      // Ceiling boundary
+      if (player.y <= 0) {
+        player.y = 0;
+        player.vy = 0;
+      }
+
+      spawnSpawns();
+
+      // Update Obstacles
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.x -= gameSpeed;
+
+        if (obs.type === 'sineNode') {
+          obs.theta += 0.05;
+          obs.y = obs.baseY + Math.sin(obs.theta) * 35;
+        }
+
+        // Collision Check with Obstacle
+        if (checkCollision(player, obs)) {
+          sound.playHit();
+          createPuff(player.x + player.w / 2, player.y + player.h / 2, '#f43f5e');
+          obstacles.splice(i, 1);
+          lives--;
+          updateHUD();
+
+          if (lives <= 0) {
+            gameState = 'GAME_OVER';
+            showModal('gameOverModal');
+            return;
+          }
+          continue;
+        }
+
+        if (obs.x + obs.w < -50) {
+          obstacles.splice(i, 1);
+        }
+      }
+
+      // Update Collectibles
+      for (let j = collectibles.length - 1; j >= 0; j--) {
+        const col = collectibles[j];
+        col.x -= gameSpeed;
+        col.pulse += 0.08;
+
+        if (checkCollision(player, col)) {
+          sound.playCollect();
+          createPuff(col.x + col.w / 2, col.y + col.h / 2, col.color);
+          collectibles.splice(j, 1);
+          score++;
+          updateHUD();
+
+          if (score >= config.targetCollect) {
+            triggerStageCompletion();
+            return;
+          }
+          continue;
+        }
+
+        if (col.x + col.w < -50) {
+          collectibles.splice(j, 1);
+        }
+      }
+
+      // Update Particles
+      for (let p = particles.length - 1; p >= 0; p--) {
+        const pt = particles[p];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life -= pt.decay;
+        if (pt.life <= 0) {
+          particles.splice(p, 1);
+        }
+      }
+    }
+
+    // --- RENDER FUNCTION ---
+    function render() {
+      const config = LEVEL_CONFIGS[currentStageIndex];
+
+      // Clear Screen
+      ctx.fillStyle = config.palette.bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Render Parallax Stars/Thought Dots
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      stars.forEach(st => {
+        st.x -= st.speed;
+        if (st.x < 0) st.x = canvas.width;
+        ctx.fillRect(st.x, st.y, st.size, st.size);
+      });
+
+      // Ground Line
+      ctx.fillStyle = config.palette.ground;
+      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+      ctx.strokeStyle = config.palette.obstacle;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(canvas.width, groundY);
+      ctx.stroke();
+
+      // Render Obstacles
+      obstacles.forEach(obs => {
+        ctx.fillStyle = obs.color;
+        if (obs.type === 'sineNode') {
+          ctx.beginPath();
+          ctx.arc(obs.x + obs.w / 2, obs.y + obs.h / 2, obs.w / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#fff';
+          ctx.stroke();
+        } else {
+          ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+          ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+          ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+        }
+      });
+
+      // Render Collectibles (Pulsing Diamonds / Cores)
+      collectibles.forEach(col => {
+        const pSize = Math.sin(col.pulse) * 3;
+        ctx.save();
+        ctx.translate(col.x + col.w / 2, col.y + col.h / 2);
+        ctx.fillStyle = col.color;
+        ctx.shadowColor = col.color;
+        ctx.shadowBlur = 10;
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -col.h / 2 - pSize);
+        ctx.lineTo(col.w / 2 + pSize, 0);
+        ctx.lineTo(0, col.h / 2 + pSize);
+        ctx.lineTo(-col.w / 2 - pSize, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Render Particles
+      particles.forEach(pt => {
+        ctx.fillStyle = pt.color;
+        ctx.globalAlpha = Math.max(0, pt.life);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Render Player Avatar
+      ctx.save();
+      ctx.translate(player.x + player.w / 2, player.y + player.h / 2);
+
+      if (config.avatarType === 'square') {
+        // Analytical Strategist: Strict Grid Box
+        ctx.fillStyle = config.palette.player;
+        ctx.fillRect(-player.w / 2, -player.h / 2, player.w, player.h);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(-player.w / 2, -player.h / 2, player.w, player.h);
+        // "Glasses" or analytical eye
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(2, -4, 6, 6);
+      } else if (config.avatarType === 'spark') {
+        // Wild Ideator: Spinning Star
+        ctx.rotate(Date.now() * 0.005);
+        ctx.fillStyle = config.palette.player;
+        ctx.shadowColor = '#f43f5e';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 16, -Math.sin((18 + i * 72) * Math.PI / 180) * 16);
+          ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 8, -Math.sin((54 + i * 72) * Math.PI / 180) * 8);
+        }
+        ctx.closePath();
+        ctx.fill();
+      } else if (config.avatarType === 'cube') {
+        // Pragmatic Builder: Modular Brick
+        ctx.fillStyle = config.palette.player;
+        ctx.fillRect(-player.w / 2, -player.h / 2, player.w, player.h);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(-player.w / 2 + 4, -player.h / 2 + 4, player.w - 8, player.h - 8);
+      } else if (config.avatarType === 'wave') {
+        // Empathetic Harmonizer: Gentle Orb
+        ctx.fillStyle = config.palette.player;
+        ctx.shadowColor = '#34d399';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#064e3b';
+        ctx.beginPath();
+        ctx.arc(4, -2, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (config.avatarType === 'diamond') {
+        // Provocative Disruptor: Angular Diamond
+        ctx.fillStyle = config.palette.player;
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(0, -player.h / 2 - 2);
+        ctx.lineTo(player.w / 2 + 2, 0);
+        ctx.lineTo(0, player.h / 2 + 2);
+        ctx.lineTo(-player.w / 2 - 2, 0);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Synthesis Ship: Combines attributes of all 5
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 15;
+        // Central vessel
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.moveTo(16, 0);
+        ctx.lineTo(-12, -14);
+        ctx.lineTo(-6, 0);
+        ctx.lineTo(-12, 14);
+        ctx.closePath();
+        ctx.fill();
+        // Core energy gem
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // Main Engine Tick
+    function engineLoop() {
+      updateGame();
+      render();
+      animFrameId = requestAnimationFrame(engineLoop);
+    }
+
+    // --- BUTTON EVENT BINDINGS ---
+    document.getElementById('startQuestBtn').addEventListener('click', () => {
+      prepareStage(0);
+    });
+    document.getElementById('introStartBtn').addEventListener('click', () => {
+      startStageGameplay();
+    });
+    document.getElementById('nextLevelBtn').addEventListener('click', () => {
+      advanceToNextStage();
+    });
+    document.getElementById('retryStageBtn').addEventListener('click', () => {
+      prepareStage(currentStageIndex);
+    });
+    document.getElementById('playAgainBtn').addEventListener('click', () => {
+      prepareStage(0);
+    });
+
+    // Window Load init
+    window.onload = function() {
+      resizeCanvas();
+      showModal('startScreen');
+      updateHUD();
+      engineLoop();
+    };
+  </script>
+</body>
+</html>
